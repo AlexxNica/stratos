@@ -1,4 +1,3 @@
-
 import { RequestOptions } from '@angular/http';
 import { Action, compose, createFeatureSelector, createSelector, Store } from '@ngrx/store';
 import { denormalize, Schema } from 'normalizr';

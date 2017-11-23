@@ -1,3 +1,4 @@
+import { GET_ALL } from './actions/application.actions';
 import { combineReducers, StoreModule, ActionReducerMap, State } from '@ngrx/store';
 import { storeFreeze } from 'ngrx-store-freeze';
 import { storeLogger } from 'ngrx-store-logger';
@@ -12,7 +13,6 @@ import { cnsisReducer } from './reducers/cnsis.reducer';
 import { createAppReducer } from './reducers/create-application.reducer';
 import { dashboardReducer } from './reducers/dashboard-reducer';
 import { entitiesReducer } from './reducers/entity.reducer';
-import { paginationReducer } from './reducers/pagination.reducer';
 import { uaaSetupReducer } from './reducers/uaa-setup.reducers';
 import { NgModule } from '@angular/core';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
@@ -21,6 +21,7 @@ import { RouterStateSnapshot, Params } from '@angular/router';
 import { actionHistoryReducer } from './reducers/action-history-reducer';
 import { MetadataState } from './types/app-metadata.types';
 import { listReducer } from './reducers/list.reducer';
+import { paginationReducer } from './core/paginated-request/reducer/pagination-reducer.factory';
 
 
 export function logger(reducer): any {
