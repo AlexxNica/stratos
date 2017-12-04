@@ -13,10 +13,8 @@ import {
   IsNewAppNameFree
 } from '../actions/create-applications-page.actions';
 import { AppState } from './../app-state';
-import { UpdateExistingApplication, UPDATE_SUCCESS, GetApplication, UPDATE } from '../actions/application.actions';
+import { UpdateExistingApplication, UPDATE_SUCCESS, GetApplication, UPDATE, GetAppEnvVars } from '../actions/application.actions';
 import { ApiActionTypes } from '../actions/request.actions';
-import { GetAppMetadataAction, AppMetadataProperties } from '../actions/app-metadata.actions';
-import { AppMetadataType } from '../types/app-metadata.types';
 
 
 @Injectable()
@@ -33,9 +31,9 @@ export class UpdateAppEffects {
     .mergeMap((action: WrapperCFActionSuccess) => {
 
       const actions = [
-        // This is done so the app metadata env vars environment_json matches that of the app
-        new GetAppMetadataAction(action.apiAction.guid, action.apiAction.cnis, AppMetadataProperties.ENV_VARS as AppMetadataType)];
-
+        // This is done so the app metadata env vars environment_json matches that of the app. Is this needed anymore?
+        new GetAppEnvVars(action.apiAction.guid, action.apiAction.cnis)
+      ];
       return actions;
     });
 

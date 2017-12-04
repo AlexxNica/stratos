@@ -1,5 +1,3 @@
-import { AppMetadataType } from '../../../store/types/app-metadata.types';
-import { AppMetadataProperties, GetAppMetadataAction } from '../../../store/actions/app-metadata.actions';
 import { EntityService } from '../../../core/entity-service';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -7,23 +5,19 @@ import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Rx';
 
-import { DeleteApplication, GetApplication, UpdateApplication, ApplicationSchema } from '../../../store/actions/application.actions';
+import { DeleteApplication, GetApplication, UpdateApplication, ApplicationSchema, GetAppSummary } from '../../../store/actions/application.actions';
 import { AppState } from '../../../store/app-state';
 import { ApplicationData, ApplicationService } from '../application.service';
 import { RouterNav } from '../../../store/actions/router.actions';
+import { EntityServiceFactory } from '../../../core/entity-service-factory.service';
 
 const entityServiceFactory = (
   store: Store<AppState>,
   activatedRoute: ActivatedRoute
 ) => {
   const { id, cfId } = activatedRoute.snapshot.params;
-  return new EntityService(
-    store,
-    ApplicationSchema.key,
-    ApplicationSchema,
-    id,
-    new GetApplication(id, cfId)
-  );
+  const factory = new EntityServiceFactory(store);
+  return factory.create(ApplicationSchema.key, ApplicationSchema, id, new GetApplication(id, cfId));
 };
 
 
@@ -144,7 +138,8 @@ export class ApplicationBaseComponent implements OnInit, OnDestroy {
       this.isFetching$ = this.applicationService.isFetchingApp$;
       // Auto refresh
       this.sub.push(this.entityService.poll(10000, this.autoRefreshString).do(() => {
-        this.store.dispatch(new GetAppMetadataAction(id, cfId, AppMetadataProperties.SUMMARY as AppMetadataType));
+        console.log('SKIP UPDATING SUMMARY');
+        // this.store.dispatch(new GetAppSummary(id, cfId));
       }).subscribe());
     });
 

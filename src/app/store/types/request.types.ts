@@ -1,3 +1,4 @@
+import { PACKAGE_ROOT_URL } from '@angular/core';
 import { ApiRequestTypes } from '../reducers/api-request-reducer/request-helpers';
 import { Schema } from 'normalizr';
 import { ApiActionTypes, NonApiActionTypes } from '../actions/request.actions';
@@ -92,6 +93,17 @@ export class WrapperCFActionFailed extends CFFailedAction implements IFailedRequ
   }
 }
 
+export abstract class NoneCFRequestAction implements ICFAction {
+  options: RequestOptions;
+  actions: string[];
+  entity?: Schema;
+  entityKey: string;
+  guid?: string;
+  cnis?: string;
+  updatingKey?: string;
+  type = NonApiActionTypes.REQUEST;
+}
+
 export abstract class NoneCFAction implements Action {
   type = NonApiActionTypes.START;
 }
@@ -104,7 +116,7 @@ export abstract class NoneCFFailedAction implements Action {
 
 export class StartNoneCFAction extends NoneCFAction implements IStartRequestAction {
   constructor(
-    public apiAction: IAPIAction | PaginatedAction,
+    public apiAction: ICFAction | PaginatedAction,
     public requestType: ApiRequestTypes
   ) {
     super();

@@ -12,7 +12,6 @@ import { UpdateApplication, ApplicationSchema } from '../../../../store/actions/
 import { Store } from '@ngrx/store';
 import { AppState } from '../../../../store/app-state';
 import { NgModel } from '@angular/forms';
-import { AppMetadataInfo } from '../../../../store/types/app-metadata.types';
 import { EntityInfo } from '../../../../store/types/api.types';
 import { CfAppEvnVarsDataSource, AppEnvVar } from '../../../../shared/data-sources/cf-app-variables-data-source';
 import { TableCellEditComponent } from '../../../../shared/components/table/table-cell-edit/table-cell-edit.component';

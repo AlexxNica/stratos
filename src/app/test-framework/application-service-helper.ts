@@ -2,7 +2,6 @@ import { RequestState } from '../store/reducers/api-request-reducer/types';
 import { ApplicationService, ApplicationData } from '../features/applications/application.service';
 import { Observable } from 'rxjs/Observable';
 import { EntityInfo } from '../store/types/api.types';
-import { AppMetadataInfo } from '../store/types/app-metadata.types';
 
 export class ApplicationServiceMock {
   cfGuid = 'mockCfGuid';
@@ -29,7 +28,8 @@ export class ApplicationServiceMock {
     },
     fetching: false
   } as ApplicationData));
-  appSummary$: Observable<AppMetadataInfo> = Observable.of(({ metadataRequestState: { fetching: {} } } as AppMetadataInfo));
+  // TODO: RC
+  appSummary$: Observable<any> = Observable.of(({ metadataRequestState: { fetching: {} } } as any));
   isFetchingApp$: Observable<boolean> = Observable.of(false);
   isFetchingEnvVars$: Observable<boolean> = Observable.of(false);
   isUpdatingEnvVars$: Observable<boolean> = Observable.of(false);

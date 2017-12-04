@@ -15,13 +15,12 @@ const cfId = '01ccda9d-8f40-4dd0-bc39-08eea68e364f';
 const entityServiceFactory = (
   store: Store<AppState>
 ) => {
-  return new EntityService(
-    store,
-    ApplicationSchema.key,
+  const service = new EntityService(store)
+  service.init(ApplicationSchema.key,
     ApplicationSchema,
     appId,
-    new GetApplication(appId, cfId)
-  );
+    new GetApplication(appId, cfId));
+  return service;
 };
 
 describe('EntityServiceService', () => {

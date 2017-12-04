@@ -1,9 +1,10 @@
-import { RequestAction } from '../types/request.types';
+import { RequestAction, NoneCFRequestAction } from '../types/request.types';
 import { RequestOptions } from '@angular/http';
 import { Schema, schema } from 'normalizr';
 import { Action, createSelector } from '@ngrx/store';
 
 import { AppState } from '../app-state';
+import { cnsisStoreNames } from '../types/cnsis.types';
 
 export const GET_CNSIS = '[CNSIS] Get all';
 export const GET_CNSIS_LOGIN = '[CNSIS] Get all at login';
@@ -36,4 +37,14 @@ export class ConnectCnis implements Action {
     public password: string,
   ) { }
   type = CONNECT_CNSIS;
+}
+
+export class GetAllCNSIEntities extends NoneCFRequestAction {
+  constructor() {
+    super();
+    this.options = new RequestOptions();
+  }
+  entityKey = cnsisStoreNames.type;
+  requestType = 'fetch';
+  options: RequestOptions;
 }

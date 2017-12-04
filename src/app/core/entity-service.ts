@@ -8,33 +8,32 @@ import { denormalize, Schema } from 'normalizr';
 import { Observable } from 'rxjs/Rx';
 import { APIResource, EntityInfo } from '../store/types/api.types';
 import {
-  getEntityState,
   getEntityUpdateSections,
   getUpdateSectionById,
   selectEntity,
   selectRequestInfo,
   selectUpdateInfo,
+  getEntitySection,
 } from '../store/selectors/api.selectors';
 import { CfEntitiesState } from '../store/types/entity.types';
 import { Inject, Injectable } from '@angular/core';
+import { OtherEntitiesRequestDataState } from '../store/types/other-entity.types';
 
 type PollUntil = (apiResource: APIResource, updatingState: ActionState) => boolean;
-/**
- * Designed to be used in a service factory provider
- */
+
 @Injectable()
 export class EntityService {
 
   constructor(
     private store: Store<AppState>,
-    public entityKey: string,
-    public schema: Schema,
-    public id: string,
-    public action: IAPIAction,
-    public entitySection = 'cf'
+    private entityKey: string,
+    private schema: Schema,
+    private entityId: string,
+    private action: IAPIAction,
+    private entitySection = 'cf'
   ) {
-    this.entitySelect$ = store.select(selectEntity(entityKey, id, entitySection));
-    this.entityRequestSelect$ = store.select(selectRequestInfo(entityKey, id, entitySection));
+    this.entitySelect$ = store.select(selectEntity(entityKey, entityId, entitySection));
+    this.entityRequestSelect$ = store.select(selectRequestInfo(entityKey, entityId, entitySection));
     this.actionDispatch = (updatingKey) => {
       if (updatingKey) {
         action.updatingKey = updatingKey;
@@ -90,6 +89,8 @@ export class EntityService {
 
   updatingSection$: Observable<UpdatingSection>;
 
+  fetching: boolean;
+
   private getEntityObservable = (
     schema: Schema,
     actionDispatch: Function,
@@ -97,11 +98,13 @@ export class EntityService {
     entityRequestSelect$: Observable<RequestState>
   ): Observable<EntityInfo> => {
     return Observable.combineLatest(
-      this.store.select(getEntityState(this.entitySection)),
       entitySelect$,
       entityRequestSelect$
     )
-      .do(([entities, entity, entityRequestInfo]: [CfEntitiesState, APIResource, RequestState]) => {
+      .withLatestFrom(
+      this.store.select(getEntitySection(this.entitySection)),
+    )
+      .do(([[entity, entityRequestInfo], entities]: [[APIResource, RequestState], CfEntitiesState | OtherEntitiesRequestDataState]) => {
         if (
           !entityRequestInfo ||
           !entity &&
@@ -111,13 +114,13 @@ export class EntityService {
           !entityRequestInfo.deleting.deleted
         ) {
           actionDispatch();
+
         }
       })
-
-      .filter(([entities, entity, entityRequestInfo]) => {
+      .filter(([[entity, entityRequestInfo], entities]: [[APIResource, RequestState], CfEntitiesState | OtherEntitiesRequestDataState]) => {
         return !!entityRequestInfo;
       })
-      .map(([entities, entity, entityRequestInfo]) => {
+      .map(([[entity, entityRequestInfo], entities]: [[APIResource, RequestState], CfEntitiesState | OtherEntitiesRequestDataState]) => {
         return {
           entityRequestInfo,
           entity: entity ? {
@@ -126,6 +129,8 @@ export class EntityService {
           } : null
         };
       });
+
+
   }
   /**
    * @param interval - The polling interval in ms.
@@ -146,9 +151,10 @@ export class EntityService {
         )
       }))
       .do(({ resource, updatingSection }) => {
-        if (!updatingSection || !updatingSection.busy) {
-          this.actionDispatch(key);
-        }
+        console.log('SKIP UPDATING APP');
+        // if (!updatingSection || !updatingSection.busy) {
+        //   this.actionDispatch(key);
+        // }
       })
       .filter(({ resource, updatingSection }) => {
         return !!updatingSection;

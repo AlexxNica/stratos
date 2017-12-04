@@ -4,17 +4,14 @@ import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
 
-import {
-  AppMetadataProperties,
-  GetAppMetadataAction,
-  getAppMetadataObservable,
-  selectMetadataRequest,
-} from '../../store/actions/app-metadata.actions';
 import { ApplicationSchema } from '../../store/actions/application.actions';
 import {
   GetApplication,
   UpdateApplication,
   UpdateExistingApplication,
+  GetAppStats,
+  GetAppSummary,
+  GetAppEnvVars,
 } from '../../store/actions/application.actions';
 import { AppState } from '../../store/app-state';
 
@@ -24,7 +21,10 @@ import {
   ApplicationStateService,
 } from './application/build-tab/application-state/application-state.service';
 import { EntityInfo } from '../../store/types/api.types';
-import { AppMetadataRequestState, AppMetadataInfo, AppMetadataType } from '../../store/types/app-metadata.types';
+import { EntityServiceFactory } from '../../core/entity-service-factory.service';
+import {
+  AppSummarySchema, AppSummaryStoreNames, AppStatsSchema, AppStatsStoreNames, AppEnvVarsSchema, AppEnvVarsStoreNames
+} from '../../store/types/application.types';
 
 export interface ApplicationData {
   fetching: boolean;
@@ -40,7 +40,8 @@ export class ApplicationService {
 
   constructor(
     private store: Store<AppState>,
-    private entityService: EntityService,
+    private entityServiceFactory: EntityServiceFactory,
+    private appEntityService: EntityService,
     private appStateService: ApplicationStateService,
     private appEnvVarsService: ApplicationEnvVarsService) {
   }
@@ -57,9 +58,10 @@ export class ApplicationService {
 
   app$: Observable<EntityInfo>;
   waitForAppEntity$: Observable<EntityInfo>;
-  appSummary$: Observable<AppMetadataInfo>;
-  appStatsGated$: Observable<null | AppMetadataInfo>;
-  appEnvVars$: Observable<AppMetadataInfo>;
+
+  appSummary$: Observable<any>; // TODO: RC
+  appStatsGated$: Observable<null | any>; // TODO: RC
+  appEnvVars$: Observable<any>; // TODO: RC
 
   application$: Observable<ApplicationData>;
   applicationStratProject$: Observable<EnvVarStratosProject>;
@@ -76,46 +78,47 @@ export class ApplicationService {
     }
   }
 
-  isMetadataComplete(value, requestInfo: AppMetadataRequestState): boolean {
-    if (requestInfo) {
-      return !requestInfo.fetching;
-    } else {
-      return !!value;
-    }
-  }
-
   setApplication(cfGuid, appGuid) {
     this.appGuid = appGuid;
     this.cfGuid = cfGuid;
 
     // First set up all the base observables
-    this.app$ = this.entityService.entityObs$;
+    this.app$ = this.appEntityService.entityObs$;
 
-    this.isDeletingApp$ = this.entityService.isDeletingEntity$;
+    const appSummaryService = this.entityServiceFactory.create(
+      AppSummarySchema.key,
+      AppSummarySchema,
+      appGuid,
+      new GetAppSummary(appGuid, cfGuid),
+      AppSummaryStoreNames.section
+    );
 
-    this.waitForAppEntity$ = this.entityService.waitForEntity$;
+    const appStatsService = this.entityServiceFactory.create(
+      AppStatsSchema.key,
+      AppStatsSchema,
+      appGuid,
+      new GetAppStats(appGuid, cfGuid),
+      AppStatsStoreNames.section
+    );
 
-    this.appSummary$ =
-      this.waitForAppEntity$.mergeMap(() => getAppMetadataObservable(
-        this.store,
-        appGuid,
-        new GetAppMetadataAction(appGuid, cfGuid, AppMetadataProperties.SUMMARY as AppMetadataType)
-      ));
+    const appEnvVarsService = this.entityServiceFactory.create(
+      AppEnvVarsSchema.key,
+      AppEnvVarsSchema,
+      appGuid,
+      new GetAppEnvVars(appGuid, cfGuid),
+      AppEnvVarsStoreNames.section
+    );
+
+    this.isDeletingApp$ = this.appEntityService.isDeletingEntity$;
+
+    this.waitForAppEntity$ = this.appEntityService.waitForEntity$;
+
+    this.appSummary$ = this.waitForAppEntity$.mergeMap(() => appSummaryService.entityObs$);
 
     // Subscribing to this will make the stats call. It's better to subscribe to appStatsGated$
-    const appStats$ =
-      this.waitForAppEntity$.take(1).mergeMap(() => getAppMetadataObservable(
-        this.store,
-        appGuid,
-        new GetAppMetadataAction(appGuid, cfGuid, AppMetadataProperties.INSTANCES as AppMetadataType)
-      ));
+    const appStats$ = this.waitForAppEntity$.take(1).mergeMap(() => appStatsService.entityObs$);
 
-    this.appEnvVars$ =
-      this.waitForAppEntity$.take(1).mergeMap(() => getAppMetadataObservable(
-        this.store,
-        appGuid,
-        new GetAppMetadataAction(appGuid, cfGuid, AppMetadataProperties.ENV_VARS as AppMetadataType)
-      ));
+    this.appEnvVars$ = this.waitForAppEntity$.take(1).mergeMap(() => appEnvVarsService.entityObs$);
 
     // Assign/Amalgamate them to public properties (with mangling if required)
 
@@ -149,12 +152,13 @@ export class ApplicationService {
 
     this.applicationState$ = this.waitForAppEntity$
       .combineLatest(this.appStatsGated$)
-      .map(([appInfo, appStats]: [EntityInfo, AppMetadataInfo]) => {
+      .map(([appInfo, appStats]: [EntityInfo, any]) => {
+        // TODO: RC any?
         return this.appStateService.get(appInfo.entity.entity, appStats ? appStats.metadata : null);
       });
 
     this.applicationStratProject$ = this.appEnvVars$.map(applicationEnvVars => {
-      return this.appEnvVarsService.FetchStratosProject(applicationEnvVars.metadata);
+      return this.appEnvVarsService.ExtractStratosProject(applicationEnvVars.metadata);
     });
 
 

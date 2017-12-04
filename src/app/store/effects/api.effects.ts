@@ -2,11 +2,14 @@ import { getRequestTypeFromMethod } from '../reducers/api-request-reducer/reques
 import {
   CFAction,
   CFStartAction,
-  IAPIAction,
   ICFAction,
   StartCFAction,
   WrapperCFActionFailed,
   WrapperCFActionSuccess,
+  StartNoneCFAction,
+  WrapperNoneCFActionSuccess,
+  WrapperNoneCFActionFailed,
+  IAPIAction,
 } from '../types/request.types';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/mergeMap';
@@ -14,14 +17,14 @@ import 'rxjs/add/operator/mergeMap';
 import { Injectable } from '@angular/core';
 import { Headers, Http, Request, RequestMethod, Response, URLSearchParams } from '@angular/http';
 import { Actions, Effect } from '@ngrx/effects';
-import { Store } from '@ngrx/store';
+import { Action, Store } from '@ngrx/store';
 import { normalize } from 'normalizr';
 import { Observable } from 'rxjs/Observable';
 
 import { ClearPaginationOfType, SetParams } from '../actions/pagination.actions';
 import { environment } from './../../../environments/environment';
 import {
-  ApiActionTypes
+  ApiActionTypes, NonApiActionTypes
 } from './../actions/request.actions';
 import {
   APIResource,
@@ -38,6 +41,10 @@ import { selectPaginationState } from '../selectors/pagination.selectors';
 import { CNSISModel, cnsisStoreNames } from '../types/cnsis.types';
 
 const { proxyAPIVersion, cfAPIVersion } = environment;
+export const AAAAA2 = 'sdfsdfdsf';
+export class AAAAA implements Action {
+  type = AAAAA2;
+}
 
 @Injectable()
 export class APIEffect {
@@ -49,11 +56,24 @@ export class APIEffect {
   ) { }
 
   @Effect() apiRequestStart$ = this.actions$.ofType<ICFAction>(ApiActionTypes.API_REQUEST)
-    .map(apiAction => {
-      return new StartCFAction(
+    .mergeMap(apiAction => {
+      const b = new StartCFAction(
         apiAction,
         getRequestTypeFromMethod(apiAction.options.method)
       );
+      return [b];
+    });
+
+
+
+  @Effect() nonApiRequestStart$ = this.actions$.ofType<ICFAction>(NonApiActionTypes.REQUEST)
+    .mergeMap(apiAction => {
+      console.log(apiAction);
+      const a = new StartNoneCFAction(
+        apiAction,
+        getRequestTypeFromMethod(apiAction.options ? apiAction.options.method : '')
+      );
+      return [new AAAAA(), a];
     });
 
   @Effect() apiRequest$ = this.actions$.ofType<StartCFAction>(ApiActionTypes.API_REQUEST_START)
@@ -159,16 +179,110 @@ export class APIEffect {
         });
     });
 
-  private completeResourceEntity(resource: APIResource | any, cfGuid: string): APIResource {
+  @Effect() noneApiRequest2$ = this.actions$.ofType<AAAAA>(AAAAA2)
+    .do((action) => console.log(`aaaaaReceived ${action.type}`))
+    .filter((action) => action.type !== AAAAA2);
+
+  // @Effect() noneApiRequest2$ = this.actions$.ofType<StartNoneCFAction>(NonApiActionTypes.START)
+  //   .do((action) => console.log(`aaaaaReceived ${action.type}`))
+  //   .subscribe();
+
+  @Effect() noneApiRequest$ = this.actions$.ofType<ICFAction>(NonApiActionTypes.REQUEST)
+    .withLatestFrom(this.store)
+    .mergeMap(([action, state]) => {
+
+      const paramsObject = {};
+      const apiAction = action as ICFAction;
+      const options = { ...apiAction.options };
+      const requestType = getRequestTypeFromMethod(options ? options.method : '');
+
+      if (!options.url) {
+        return [];
+      }
+      console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+
+      this.store.dispatch(new StartNoneCFAction(apiAction, requestType));
+      this.store.dispatch(this.getActionFromString(apiAction.actions[0]));
+
+      options.url = `/pp/${proxyAPIVersion}/proxy/${cfAPIVersion}/${options.url}`;
+      options.headers = this.addBaseHeaders(
+        apiAction.cnis ||
+        state.requestData[cnsisStoreNames.section][cnsisStoreNames.type], options.headers
+      );
+
+      return this.http.request(new Request(options))
+        .mergeMap(response => {
+          let resData;
+          try {
+            resData = response.json();
+          } catch (e) {
+            resData = null;
+          }
+          if (resData) {
+            const cnsisErrors = this.getErrors(resData);
+            if (cnsisErrors.length) {
+              // We should consider not completely failing the whole if some cnsis return.
+              throw Observable.throw(`Error from cnsis: ${cnsisErrors.map(res => `${res.guid}: ${res.error}.`).join(', ')}`);
+            }
+          }
+
+          let entities;
+          let totalResults = 0;
+          if (resData) {
+            const entityData = this.getEntities(apiAction, resData);
+            entities = entityData.entities;
+            totalResults = entityData.totalResults;
+          }
+
+          entities = entities || {
+            entities: {},
+            result: []
+          };
+
+          // const mappedData = {
+          //   entities: {
+          //     [apiAction.entityKey]: {}
+          //   },
+          //   result: []
+          // };
+          // Object.keys(resData).forEach(entityId => {
+          //   mappedData.entities[apiAction.entityKey][entityId] = resData[entityId];
+          //   mappedData.result.push(entityId);
+          // });
+
+          const actions = [];
+          actions.push({ type: apiAction.actions[1], apiAction });
+          actions.push(new WrapperNoneCFActionSuccess(
+            entities,
+            apiAction,
+            requestType,
+            totalResults,
+          ));
+
+          return actions;
+        })
+        .catch(err => {
+          return [
+            { type: apiAction.actions[1], apiAction },
+            new WrapperNoneCFActionFailed(
+              err.message,
+              apiAction,
+              requestType
+            )
+          ];
+        });
+    });
+
+  private completeResourceEntity(resource: APIResource | any, cfGuid: string, id: string): APIResource {
     if (!resource) {
       return resource;
     }
     return resource.metadata ? {
-      entity: { ...resource.entity, guid: resource.metadata.guid, cfGuid },
+      entity: { ...resource.entity, guid: id, cfGuid },
       metadata: resource.metadata
     } : {
         entity: { ...resource, cfGuid },
-        metadata: { guid: resource.guid }
+        metadata: { guid: id }
       };
   }
 
@@ -188,6 +302,7 @@ export class APIEffect {
     entities: NormalizedResponse
     totalResults: number
   } {
+    const id = apiAction.guid;
     let totalResults = 0;
     const allEntities = Object.keys(data).map(cfGuid => {
       const cfData = data[cfGuid];
@@ -197,11 +312,11 @@ export class APIEffect {
           return null;
         }
         return cfData.resources.map(resource => {
-          return this.completeResourceEntity(resource, cfGuid);
+          return this.completeResourceEntity(resource, cfGuid, id);
         });
       } else {
 
-        return this.completeResourceEntity(cfData, cfGuid);
+        return this.completeResourceEntity(cfData, cfGuid, id);
       }
     });
     const flatEntities = [].concat(...allEntities).filter(e => !!e);

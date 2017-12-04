@@ -35,7 +35,7 @@ export class ApplicationEnvVarsService {
 
   constructor() { }
 
-  FetchStratosProject(appEnvVars): EnvVarStratosProject {
+  ExtractStratosProject(appEnvVars): EnvVarStratosProject {
     if (!appEnvVars) {
       return null;
     }

@@ -1,14 +1,14 @@
-import { CFAction, IAPIAction, ICFAction } from '../types/request.types';
+import { CFAction, IAPIAction, ICFAction, NoneCFAction, NoneCFRequestAction } from '../types/request.types';
 import { getAPIResourceGuid } from '../selectors/api.selectors';
 import { Headers, RequestOptions, URLSearchParams } from '@angular/http';
 import { schema } from 'normalizr';
 
-import { ApiActionTypes } from './request.actions';
+import { ApiActionTypes, NonApiActionTypes } from './request.actions';
 import { SpaceSchema } from './space.actions';
 import { StackSchema } from './stack.action';
 import { ActionMergeFunction } from '../types/api.types';
 import { PaginatedAction } from '../types/pagination.types';
-import { NewApplication } from '../types/application.types';
+import { NewApplication, AppSummarySchema } from '../types/application.types';
 import { pick } from '../helpers/reducer.helper';
 
 export const GET_ALL = '[Application] Get all';
@@ -199,5 +199,74 @@ export class DeleteApplication extends CFAction implements ICFAction {
   type = ApiActionTypes.API_REQUEST;
   entity = [ApplicationSchema];
   entityKey = ApplicationSchema.key;
+  options: RequestOptions;
+}
+
+export const AppSummaryActions = {
+  GET: '[Application Summary] Get Summary',
+  GET_SUCCESS: '[Application Summary] Get Summary Success',
+  GET_FAILED: '[Application Summary] Get Summary Failed',
+};
+
+export class GetAppSummary extends NoneCFRequestAction {
+  constructor(public guid: string, public cnis: string) {
+    super();
+    this.options = new RequestOptions();
+    this.options.url = `apps/${guid}/summary`;
+    this.options.method = 'get';
+  }
+  actions = [
+    AppSummaryActions.GET,
+    AppSummaryActions.GET_SUCCESS,
+    AppSummaryActions.GET_FAILED
+  ];
+  entity = [AppSummarySchema];
+  entityKey = AppSummarySchema.key;
+  options: RequestOptions;
+}
+
+export const AppStatsActions = {
+  GET: '[Application Stats] Get Stats',
+  GET_SUCCESS: '[Application Stats] Get Stats Success',
+  GET_FAILED: '[Application Stats] Get Stats Failed',
+};
+
+export class GetAppStats extends NoneCFRequestAction {
+  constructor(public guid: string, public cnis: string) {
+    super();
+    this.options = new RequestOptions();
+    this.options.url = `apps/${guid}/stats`;
+    this.options.method = 'get';
+  }
+  actions = [
+    AppStatsActions.GET,
+    AppStatsActions.GET_SUCCESS,
+    AppStatsActions.GET_FAILED
+  ];
+  entity = [AppSummarySchema];
+  entityKey = AppSummarySchema.key;
+  options: RequestOptions;
+}
+
+export const AppEnvVarsActions = {
+  GET: '[Application Env Vars] Get Env Vars',
+  GET_SUCCESS: '[Application Env Vars] Get Env Vars Success',
+  GET_FAILED: '[Application Env Vars] Get Env Vars Failed',
+};
+
+export class GetAppEnvVars extends NoneCFRequestAction {
+  constructor(public guid: string, public cnis: string) {
+    super();
+    this.options = new RequestOptions();
+    this.options.url = `apps/${guid}/env`;
+    this.options.method = 'get';
+  }
+  actions = [
+    AppEnvVarsActions.GET,
+    AppEnvVarsActions.GET_SUCCESS,
+    AppEnvVarsActions.GET_FAILED
+  ];
+  entity = [AppSummarySchema];
+  entityKey = AppSummarySchema.key;
   options: RequestOptions;
 }

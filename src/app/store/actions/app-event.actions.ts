@@ -24,7 +24,7 @@ export const EventSchema = new schema.Entity('event', {
 export class GetAllAppEvents implements PaginatedAction {
   private static sortField = 'timestamp'; // This is the field that 'order-direction' is applied to. Cannot be changed
 
-  constructor(public paginationKey: string, public appGuid: string, public cnis) {
+  constructor(public paginationKey: string, public guid: string, public cnis) {
     this.options = new RequestOptions();
     this.options.url = 'events';
     this.options.method = 'get';
@@ -50,7 +50,7 @@ export class GetAllAppEvents implements PaginatedAction {
     'order-direction': 'desc',
     'order-direction-field': GetAllAppEvents.sortField,
     q: [
-      new QParam('actee', this.appGuid),
+      new QParam('actee', this.guid),
     ]
   };
 }

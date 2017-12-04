@@ -23,7 +23,7 @@ export const getUpdateSectionById = (guid: string) => (updating): ActionState =>
 export function selectEntities(type: string, section = 'cf') {
   return compose(
     getRequestType(type),
-    getEntityState(section)
+    getEntitySection(section)
   );
 }
 
@@ -31,7 +31,7 @@ export function selectEntity(type: string, guid: string, section = 'cf') {
   return compose(
     getEntityById<APIResource>(guid),
     getRequestType(type),
-    getEntityState(section)
+    getEntitySection(section)
   );
 }
 
@@ -64,20 +64,20 @@ export function selectRequestInfo(type: string, guid: string, section?: string) 
 
 export function getRequestBySection(section?: string) {
   return compose(
-    getRequestState(section),
+    getRequestSection(section),
     getAPIRequestInfoState
   );
 }
 
-function getRequestState(section = 'cf') {
+function getRequestSection(section = 'cf') {
   return function (state) {
     return state[section];
   };
 }
 
-export function getEntityState(section = 'cf') {
+export function getEntitySection(section = 'cf') {
   return compose(
-    getRequestState(section),
+    getRequestSection(section),
     getAPIRequestDataState
   );
 }

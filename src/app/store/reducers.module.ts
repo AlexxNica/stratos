@@ -5,8 +5,6 @@ import { storeLogger } from 'ngrx-store-logger';
 
 import { environment } from '../../environments/environment';
 import { AppState } from './app-state';
-import { appMetadataRequestReducer } from './reducers/app-metadata-request.reducer';
-import { appMetadataReducer } from './reducers/app-metadata.reducer';
 import { authReducer } from './reducers/auth.reducer';
 import { cnsisReducer } from './reducers/cnsis.reducer';
 import { createAppReducer } from './reducers/create-application.reducer';
@@ -18,7 +16,6 @@ import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { routerReducer } from '@ngrx/router-store';
 import { RouterStateSnapshot, Params } from '@angular/router';
 import { actionHistoryReducer } from './reducers/action-history-reducer';
-import { MetadataState } from './types/app-metadata.types';
 import { listReducer } from './reducers/list.reducer';
 import { generateDefaultState } from './reducers/api-request-reducer/request-helpers';
 import { CfEntityStateNames } from './types/entity.types';
@@ -31,15 +28,15 @@ export function logger(reducer): any {
   return storeLogger()(reducer);
 }
 
-const appMetadataReducers: ActionReducerMap<MetadataState> = {
-  values: appMetadataReducer,
-  requests: appMetadataRequestReducer
-};
+// const appMetadataReducers: ActionReducerMap<MetadataState> = {
+//   values: appMetadataReducer,
+//   requests: appMetadataRequestReducer
+// };
 
-export function appMetaDataReducer(state, action): MetadataState {
-  // https://github.com/ngrx/platform/issues/116#issuecomment-317297642
-  return combineReducers<MetadataState>(appMetadataReducers)(state, action);
-}
+// export function appMetaDataReducer(state, action): MetadataState {
+//   // https://github.com/ngrx/platform/issues/116#issuecomment-317297642
+//   return combineReducers<MetadataState>(appMetadataReducers)(state, action);
+// }
 
 export const appReducers = {
   auth: authReducer,
@@ -50,7 +47,6 @@ export const appReducers = {
   requestData: requestDataReducer,
   dashboard: dashboardReducer,
   createApplication: createAppReducer,
-  appMetadata: appMetaDataReducer,
   actionHistory: actionHistoryReducer,
   lists: listReducer,
   // routerReducer: routerReducer,  // Create action for router navigation
