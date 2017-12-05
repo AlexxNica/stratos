@@ -138,7 +138,7 @@ export class ApplicationBaseComponent implements OnInit, OnDestroy {
       this.isFetching$ = this.applicationService.isFetchingApp$;
       // Auto refresh
       this.sub.push(this.entityService.poll(10000, this.autoRefreshString).do(() => {
-        console.log('SKIP UPDATING SUMMARY');
+        console.log('SKIP UPDATING SUMMARY');// TODO: RC REMOVE/UNDO
         // this.store.dispatch(new GetAppSummary(id, cfId));
       }).subscribe());
     });

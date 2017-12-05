@@ -1,4 +1,4 @@
-import { CFAction, IAPIAction, ICFAction, NoneCFAction, NoneCFRequestAction } from '../types/request.types';
+import { CFAction, IAPIAction, ICFAction, NoneCFAction, GenericCFRequestAction } from '../types/request.types';
 import { getAPIResourceGuid } from '../selectors/api.selectors';
 import { Headers, RequestOptions, URLSearchParams } from '@angular/http';
 import { schema } from 'normalizr';
@@ -8,8 +8,9 @@ import { SpaceSchema } from './space.actions';
 import { StackSchema } from './stack.action';
 import { ActionMergeFunction } from '../types/api.types';
 import { PaginatedAction } from '../types/pagination.types';
-import { NewApplication, AppSummarySchema } from '../types/application.types';
+import { AppEnvVarsSchema, AppStatsSchema, AppSummarySchema, NewApplication } from '../types/application.types';
 import { pick } from '../helpers/reducer.helper';
+import { ApiRequestTypes } from '../reducers/api-request-reducer/request-helpers';
 
 export const GET_ALL = '[Application] Get all';
 export const GET_ALL_SUCCESS = '[Application] Get all success';
@@ -208,13 +209,14 @@ export const AppSummaryActions = {
   GET_FAILED: '[Application Summary] Get Summary Failed',
 };
 
-export class GetAppSummary extends NoneCFRequestAction {
+export class GetAppSummary implements GenericCFRequestAction {
   constructor(public guid: string, public cnis: string) {
-    super();
     this.options = new RequestOptions();
     this.options.url = `apps/${guid}/summary`;
     this.options.method = 'get';
   }
+  type = NonApiActionTypes.REQUEST;
+  requestType: ApiRequestTypes = 'fetch';
   actions = [
     AppSummaryActions.GET,
     AppSummaryActions.GET_SUCCESS,
@@ -231,20 +233,21 @@ export const AppStatsActions = {
   GET_FAILED: '[Application Stats] Get Stats Failed',
 };
 
-export class GetAppStats extends NoneCFRequestAction {
+export class GetAppStats implements GenericCFRequestAction {
   constructor(public guid: string, public cnis: string) {
-    super();
     this.options = new RequestOptions();
     this.options.url = `apps/${guid}/stats`;
     this.options.method = 'get';
   }
+  type = NonApiActionTypes.REQUEST;
+  requestType: ApiRequestTypes = 'fetch';
   actions = [
     AppStatsActions.GET,
     AppStatsActions.GET_SUCCESS,
     AppStatsActions.GET_FAILED
   ];
-  entity = [AppSummarySchema];
-  entityKey = AppSummarySchema.key;
+  entity = [AppStatsSchema];
+  entityKey = AppStatsSchema.key;
   options: RequestOptions;
 }
 
@@ -254,19 +257,20 @@ export const AppEnvVarsActions = {
   GET_FAILED: '[Application Env Vars] Get Env Vars Failed',
 };
 
-export class GetAppEnvVars extends NoneCFRequestAction {
+export class GetAppEnvVars implements GenericCFRequestAction {
   constructor(public guid: string, public cnis: string) {
-    super();
     this.options = new RequestOptions();
     this.options.url = `apps/${guid}/env`;
     this.options.method = 'get';
   }
+  type = NonApiActionTypes.REQUEST;
+  requestType: ApiRequestTypes = 'fetch';
   actions = [
     AppEnvVarsActions.GET,
     AppEnvVarsActions.GET_SUCCESS,
     AppEnvVarsActions.GET_FAILED
   ];
-  entity = [AppSummarySchema];
-  entityKey = AppSummarySchema.key;
+  entity = [AppEnvVarsSchema];
+  entityKey = AppEnvVarsSchema.key;
   options: RequestOptions;
 }

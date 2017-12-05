@@ -8,6 +8,7 @@ import {
 } from './request-helpers';
 
 export function startRequest(state, action: IStartRequestAction) {
+  console.log('startRequest: ', action.apiAction); // TODO: RC REMOVE
   if (!action.apiAction.guid) {
     return state;
   }

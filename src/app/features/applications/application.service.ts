@@ -167,7 +167,7 @@ export class ApplicationService {
     */
     this.isFetchingApp$ = Observable.combineLatest(
       this.app$.map(ei => ei.entityRequestInfo.fetching),
-      this.appSummary$.map(as => as.metadataRequestState.fetching.busy)
+      this.appSummary$.map(as => as.entityRequestInfo.fetching)
     )
       .map((fetching) => fetching[0] || fetching[1]);
 

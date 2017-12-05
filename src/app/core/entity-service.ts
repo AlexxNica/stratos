@@ -18,6 +18,7 @@ import {
 import { CfEntitiesState } from '../store/types/entity.types';
 import { Inject, Injectable } from '@angular/core';
 import { OtherEntitiesRequestDataState } from '../store/types/other-entity.types';
+import { AppSummarySchema, AppEnvVarsSchema, AppStatsSchema } from '../store/types/application.types';
 
 type PollUntil = (apiResource: APIResource, updatingState: ActionState) => boolean;
 
@@ -45,12 +46,20 @@ export class EntityService {
       this.actionDispatch(this.refreshKey);
     };
 
-    this.entityObs$ = this.getEntityObservable(
-      schema,
-      this.actionDispatch,
-      this.entitySelect$,
-      this.entityRequestSelect$
-    );
+    //TODO: RC REMOVE
+    // entityKey !== AppEnvVarsSchema.key && entityId !== AppStatsSchema.key
+    if (true) {
+      console.log(entityKey);
+      this.entityObs$ = this.getEntityObservable(
+        schema,
+        this.actionDispatch,
+        this.entitySelect$,
+        this.entityRequestSelect$
+      );
+    } else {
+      // this.entityObs$ = Observable.of({} as EntityInfo).skipWhile(() => false);
+    }
+
 
     this.updatingSection$ = this.entityObs$.map(ei => ei.entityRequestInfo.updating);
 
@@ -151,7 +160,7 @@ export class EntityService {
         )
       }))
       .do(({ resource, updatingSection }) => {
-        console.log('SKIP UPDATING APP');
+        console.log('SKIP UPDATING APP');//TODO: RC REMOVE
         // if (!updatingSection || !updatingSection.busy) {
         //   this.actionDispatch(key);
         // }

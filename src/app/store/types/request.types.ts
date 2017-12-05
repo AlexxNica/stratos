@@ -93,15 +93,8 @@ export class WrapperCFActionFailed extends CFFailedAction implements IFailedRequ
   }
 }
 
-export abstract class NoneCFRequestAction implements ICFAction {
-  options: RequestOptions;
-  actions: string[];
-  entity?: Schema;
-  entityKey: string;
-  guid?: string;
-  cnis?: string;
-  updatingKey?: string;
-  type = NonApiActionTypes.REQUEST;
+export interface GenericCFRequestAction extends ICFAction {
+  requestType: ApiRequestTypes;
 }
 
 export abstract class NoneCFAction implements Action {
@@ -114,6 +107,7 @@ export abstract class NoneCFFailedAction implements Action {
   type = NonApiActionTypes.FAILED;
 }
 
+// TODO: RC Rename to 'StartGenericCFAction' etc one all code in master
 export class StartNoneCFAction extends NoneCFAction implements IStartRequestAction {
   constructor(
     public apiAction: ICFAction | PaginatedAction,

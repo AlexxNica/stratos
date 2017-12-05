@@ -1,4 +1,5 @@
-import { RequestAction, NoneCFRequestAction } from '../types/request.types';
+import { ApiRequestTypes } from '../reducers/api-request-reducer/request-helpers';
+import { RequestAction, GenericCFRequestAction } from '../types/request.types';
 import { RequestOptions } from '@angular/http';
 import { Schema, schema } from 'normalizr';
 import { Action, createSelector } from '@ngrx/store';
@@ -39,12 +40,13 @@ export class ConnectCnis implements Action {
   type = CONNECT_CNSIS;
 }
 
-export class GetAllCNSIEntities extends NoneCFRequestAction {
+export class GetAllCNSIEntities implements GenericCFRequestAction {
   constructor() {
-    super();
     this.options = new RequestOptions();
   }
+  actions: string[];
+  type: string;
   entityKey = cnsisStoreNames.type;
-  requestType = 'fetch';
+  requestType: ApiRequestTypes = 'fetch';
   options: RequestOptions;
 }

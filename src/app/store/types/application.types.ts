@@ -22,10 +22,8 @@ export interface AppSummary extends APIResource { }
 // };
 
 export const AppSummarySchema = new schema.Entity(AppSummaryStoreNames.type, {
-  entity: {
-  }
 }, {
-    idAttribute: getAPIResourceGuid
+    idAttribute: 'guid'
   });
 
 export const AppStatsStoreNames = {
