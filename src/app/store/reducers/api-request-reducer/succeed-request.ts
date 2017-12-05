@@ -9,7 +9,6 @@ import {
 import { mergeState } from '../../helpers/reducer.helper';
 
 export function succeedRequest(state, action: ISuccessRequestAction) {
-  console.log('succeedRequest1: ', action.apiAction); // TODO: RC REMOVE
   if (action.apiAction.guid) {
     const apiAction = action.apiAction as IAPIAction;
     const successAction = action as WrapperCFActionSuccess;

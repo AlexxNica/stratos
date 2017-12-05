@@ -32,7 +32,7 @@ export const AppStatsStoreNames = {
 };
 
 export const AppStatsSchema = new schema.Entity(AppStatsStoreNames.type, {}, {
-  idAttribute: getAPIResourceGuid
+  idAttribute: 'guid'
 });
 
 export interface AppStats {

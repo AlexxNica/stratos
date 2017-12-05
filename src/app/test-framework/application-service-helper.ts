@@ -28,8 +28,7 @@ export class ApplicationServiceMock {
     },
     fetching: false
   } as ApplicationData));
-  // TODO: RC
-  appSummary$: Observable<any> = Observable.of(({ metadataRequestState: { fetching: {} } } as any));
+  appSummary$: Observable<any> = Observable.of(({ entityRequestInfo: { fetching: false } } as any));
   isFetchingApp$: Observable<boolean> = Observable.of(false);
   isFetchingEnvVars$: Observable<boolean> = Observable.of(false);
   isUpdatingEnvVars$: Observable<boolean> = Observable.of(false);

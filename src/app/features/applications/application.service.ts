@@ -179,12 +179,12 @@ export class ApplicationService {
         return updatingSection.busy || false;
       });
 
-    this.isFetchingEnvVars$ = this.appEnvVars$.map(ev => ev.metadataRequestState.fetching.busy).startWith(false);
+    this.isFetchingEnvVars$ = this.appEnvVars$.map(ev => ev.entityRequestInfo.fetching).startWith(false);
 
-    this.isUpdatingEnvVars$ = this.appEnvVars$.map(ev => ev.metadataRequestState.updating.busy).startWith(false);
+    this.isUpdatingEnvVars$ = this.appEnvVars$.map(ev => ev.entityRequestInfo.updating.busy).startWith(false);
 
     this.isFetchingStats$ =
-      this.appStatsGated$.map(appStats => appStats ? appStats.metadataRequestState.updating.busy : false).startWith(false);
+      this.appStatsGated$.map(appStats => appStats ? appStats.entityRequestInfo.updating.busy : false).startWith(false);
 
   }
 

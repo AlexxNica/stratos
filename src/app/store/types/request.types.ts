@@ -107,7 +107,7 @@ export abstract class NoneCFFailedAction implements Action {
   type = NonApiActionTypes.FAILED;
 }
 
-// TODO: RC Rename to 'StartGenericCFAction' etc one all code in master
+// TODO: RC Rename to 'StartGenericCFAction' etc on all code once master is updated
 export class StartNoneCFAction extends NoneCFAction implements IStartRequestAction {
   constructor(
     public apiAction: ICFAction | PaginatedAction,

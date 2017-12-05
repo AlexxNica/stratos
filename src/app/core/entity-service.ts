@@ -46,20 +46,12 @@ export class EntityService {
       this.actionDispatch(this.refreshKey);
     };
 
-    //TODO: RC REMOVE
-    // entityKey !== AppEnvVarsSchema.key && entityId !== AppStatsSchema.key
-    if (true) {
-      console.log(entityKey);
-      this.entityObs$ = this.getEntityObservable(
-        schema,
-        this.actionDispatch,
-        this.entitySelect$,
-        this.entityRequestSelect$
-      );
-    } else {
-      // this.entityObs$ = Observable.of({} as EntityInfo).skipWhile(() => false);
-    }
-
+    this.entityObs$ = this.getEntityObservable(
+      schema,
+      this.actionDispatch,
+      this.entitySelect$,
+      this.entityRequestSelect$
+    );
 
     this.updatingSection$ = this.entityObs$.map(ei => ei.entityRequestInfo.updating);
 
@@ -123,7 +115,6 @@ export class EntityService {
           !entityRequestInfo.deleting.deleted
         ) {
           actionDispatch();
-
         }
       })
       .filter(([[entity, entityRequestInfo], entities]: [[APIResource, RequestState], CfEntitiesState | OtherEntitiesRequestDataState]) => {
@@ -160,7 +151,7 @@ export class EntityService {
         )
       }))
       .do(({ resource, updatingSection }) => {
-        console.log('SKIP UPDATING APP');//TODO: RC REMOVE
+        console.log('SKIP UPDATING APP'); // TODO: RC REMOVE
         // if (!updatingSection || !updatingSection.busy) {
         //   this.actionDispatch(key);
         // }

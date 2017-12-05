@@ -7,6 +7,10 @@ import {
   WrapperCFActionFailed,
   WrapperCFActionSuccess,
   IAPIAction,
+  GenericCFRequestAction,
+  StartNoneCFAction,
+  WrapperNoneCFActionSuccess,
+  WrapperNoneCFActionFailed,
 } from '../types/request.types';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/mergeMap';
@@ -21,7 +25,7 @@ import { Observable } from 'rxjs/Observable';
 import { ClearPaginationOfType, SetParams } from '../actions/pagination.actions';
 import { environment } from './../../../environments/environment';
 import {
-  ApiActionTypes
+  ApiActionTypes, NonApiActionTypes
 } from './../actions/request.actions';
 import {
   APIResource,
@@ -124,6 +128,46 @@ export class APIEffect {
             )
           ];
         });
+    });
+
+  @Effect() genericApiRequest$ = this.actions$.ofType<GenericCFRequestAction>(NonApiActionTypes.REQUEST)
+    .withLatestFrom(this.store)
+    .mergeMap(([action, state]: [GenericCFRequestAction, AppState]) => {
+
+      this.store.dispatch(new StartNoneCFAction(action, action.requestType));
+      this.store.dispatch(getActionFromString(action.actions[0]));
+
+      const request = createCFRequest(state, action.cnis, action.options);
+
+      return this.http.request(request)
+        .mergeMap(response => {
+          let resData;
+          try {
+            resData = response.json();
+          } catch (e) {
+            resData = null;
+          }
+          if (resData) {
+            const cnsisErrors = getCFErrors(resData);
+            if (cnsisErrors.length) {
+              // We should consider not completely failing the whole if some cnsis return.
+              throw Observable.throw(`Error from cnsis: ${cnsisErrors.map(res => `${res.guid}: ${res.error}.`).join(', ')}`);
+            }
+          }
+
+          Object.values(resData).forEach(value => {
+            value.guid = action.guid;
+          });
+
+          return [
+            new WrapperNoneCFActionSuccess(normalize(resData, action.entity), action, action.requestType),
+            getActionFromString(action.actions[1]),
+          ];
+        })
+        .catch(err => [
+          new WrapperNoneCFActionFailed(err.message, action, action.requestType),
+          getActionFromString(action.actions[2])
+        ]);
     });
 
   private completeResourceEntity(resource: APIResource | any, cfGuid: string, id?: string): APIResource {
