@@ -1,15 +1,17 @@
-import { CFAction, IAPIAction, ICFAction } from '../types/request.types';
+import { PassThrough } from 'stream';
+import { CFAction, IAPIAction, ICFAction, BasicNoneCFAction, StartBasicNoneCFAction } from '../types/request.types';
 import { getAPIResourceGuid } from '../selectors/api.selectors';
 import { Headers, RequestOptions, URLSearchParams } from '@angular/http';
 import { schema } from 'normalizr';
 
-import { ApiActionTypes } from './request.actions';
+import { ApiActionTypes, NonApiActionTypes } from './request.actions';
 import { SpaceSchema } from './space.actions';
 import { StackSchema } from './stack.action';
 import { ActionMergeFunction } from '../types/api.types';
 import { PaginatedAction } from '../types/pagination.types';
 import { NewApplication } from '../types/application.types';
 import { pick } from '../helpers/reducer.helper';
+import { ApiRequestTypes } from '../reducers/api-request-reducer/request-helpers';
 
 export const GET_ALL = '[Application] Get all';
 export const GET_ALL_SUCCESS = '[Application] Get all success';
@@ -199,5 +201,60 @@ export class DeleteApplication extends CFAction implements ICFAction {
   type = ApiActionTypes.API_REQUEST;
   entity = [ApplicationSchema];
   entityKey = ApplicationSchema.key;
+  options: RequestOptions;
+}
+
+
+
+export class GetAppSummary implements StartBasicNoneCFAction {
+  constructor(public guid: string, public cnis: string) {
+    this.options = new RequestOptions();
+    this.options.url = `apps/${guid}/summary`;
+    this.options.method = 'get';
+  }
+  type = NonApiActionTypes.REQUEST;
+  requestType: ApiRequestTypes = 'fetch';
+  actions = [
+    '[Application Summary] Get Summary',
+    '[Application Summary] Get Summary Success',
+    '[Application Summary] Get Summary Failed',
+  ];
+  entityKey = 'appSummary'; // TODO: RC
+  options: RequestOptions;
+  passthrough = true;
+}
+
+export class GetAppStats implements StartBasicNoneCFAction {
+  constructor(public guid: string, public cnis: string) {
+    this.options = new RequestOptions();
+    this.options.url = `apps/${guid}/stats`;
+    this.options.method = 'get';
+  }
+  type = NonApiActionTypes.REQUEST;
+  requestType: ApiRequestTypes = 'fetch';
+  actions = [
+    '[Application Stats] Get Stats',
+    '[Application Stats] Get Stats Success',
+    '[Application Stats] Get Stats Failed',
+  ];
+  entityKey = 'appStates'; // TODO: RC
+  options: RequestOptions;
+}
+
+export class GetAppEnvVars implements StartBasicNoneCFAction {
+  constructor(public guid: string, public cnis: string) {
+    this.options = new RequestOptions();
+    this.options.url = `apps/${guid}/env`;
+    this.options.method = 'get';
+    this.options.headers = createPassthroughHeader();
+  }
+  type = NonApiActionTypes.REQUEST;
+  requestType: ApiRequestTypes = 'fetch';
+  actions = [
+    '[Application Env Vars] Get Env Vars',
+    '[Application Env Vars] Get Env Vars Success',
+    '[Application Env Vars] Get Env Vars Failed',
+  ];
+  entityKey = 'appEnvVars'; // TODO: RC
   options: RequestOptions;
 }

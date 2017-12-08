@@ -1,4 +1,4 @@
-import { getRequestTypeFromMethod } from '../reducers/api-request-reducer/request-helpers';
+import { ApiRequestTypes, getRequestTypeFromMethod } from '../reducers/api-request-reducer/request-helpers';
 import {
   CFAction,
   CFStartAction,
@@ -7,6 +7,9 @@ import {
   StartCFAction,
   WrapperCFActionFailed,
   WrapperCFActionSuccess,
+  StartBasicNoneCFAction,
+  StartNoneCFAction,
+  WrapperNoneCFActionSuccess,
 } from '../types/request.types';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/mergeMap';
@@ -21,7 +24,7 @@ import { Observable } from 'rxjs/Observable';
 import { ClearPaginationOfType, SetParams } from '../actions/pagination.actions';
 import { environment } from './../../../environments/environment';
 import {
-  ApiActionTypes
+  ApiActionTypes, NonApiActionTypes
 } from './../actions/request.actions';
 import {
   APIResource,
@@ -36,8 +39,52 @@ import {
 import { PaginatedAction, PaginationEntityState, PaginationParam } from '../types/pagination.types';
 import { selectPaginationState } from '../selectors/pagination.selectors';
 import { CNSISModel, cnsisStoreNames } from '../types/cnsis.types';
+import { RequestArgs } from '@angular/http/src/interfaces';
 
 const { proxyAPIVersion, cfAPIVersion } = environment;
+
+//TODO: RC MOVE
+export function createBasicCFRequestOption(action: StartBasicNoneCFAction, state: AppState): Request {
+  const newOptions = { ...action.options };
+  newOptions.url = `/pp/${proxyAPIVersion}/proxy/${cfAPIVersion}/${action.options.url}`; //TODO: RC ????
+  newOptions.headers =
+    createCNSIHeader(action, action.cnis || state.requestData[cnsisStoreNames.section][cnsisStoreNames.type], newOptions.headers);
+  return new Request(newOptions);
+}
+
+function createCNSIHeader(action, cnsis: CNSISModel[] | string, header: Headers) {
+  let headers = header || new Headers();
+  if (action.passthrough) {
+    headers = createCNSIPassthroughHeader(headers);
+  } else {
+    headers = createCNSIListHeader(cnsis, headers);
+  }
+  return headers;
+}
+
+function createCNSIPassthroughHeader(headers: Headers) {
+  const cnsiPassthroughHeader = 'x-cap-passthrough';
+  headers.set(cnsiPassthroughHeader, 'true');
+  return headers;
+}
+
+function createCNSIListHeader(cnsis: CNSISModel[] | string, header: Headers): Headers {
+  const cnsiHeader = 'x-cap-cnsi-list';
+  const headers = header || new Headers();
+  if (typeof cnsis === 'string') {
+    headers.set(cnsiHeader, cnsis);
+  } else {
+    const registeredCNSIGuids = [];
+    Object.keys(cnsis).forEach(cnsiGuid => {
+      const cnsi = cnsis[cnsiGuid];
+      if (cnsi.registered) {
+        registeredCNSIGuids.push(cnsi.guid);
+      }
+    });
+    headers.set(cnsiHeader, registeredCNSIGuids);
+  }
+  return headers;
+}
 
 @Injectable()
 export class APIEffect {
@@ -55,6 +102,47 @@ export class APIEffect {
         getRequestTypeFromMethod(apiAction.options.method)
       );
     });
+
+
+
+  @Effect() basicNoneCFAction$ = this.actions$.ofType<StartBasicNoneCFAction>(NonApiActionTypes.REQUEST)
+    .withLatestFrom(this.store)
+    .mergeMap(([action, state]) => {
+      const apiAction = {
+        entityKey: action.entityKey,
+        guid: action.guid,
+        type: action.type,
+        cnis: action.cnis,
+      } as IAPIAction;
+      // updatingKey: CNSISEffect.connectingKey, //TODO: RC
+
+      const headers = new Headers();
+      headers.append('Content-Type', 'application/x-www-form-urlencoded');
+      const request = createBasicCFRequestOption(action, state);
+
+      let res: Observable<Response>;
+      this.store.dispatch(new StartNoneCFAction(apiAction, action.requestType));
+      switch (action.requestType) {
+        case 'fetch':
+          break;
+        case 'update':
+          res = this.http.post('/pp/v1/auth/login/cnsi', action.requestParams, { headers });
+          break;
+        case 'create':
+          break;
+        case 'delete':
+          break;
+      }
+      return res.map(response => {
+
+        return new WrapperNoneCFActionSuccess({ entities: {}, result: [] }, apiAction, 'update');
+      })
+        .catch(e => {
+          return [new WrapperNoneCFActionFailed('Could not connect', apiAction, actionType)];
+        });
+    });
+
+
 
   @Effect() apiRequest$ = this.actions$.ofType<StartCFAction>(ApiActionTypes.API_REQUEST_START)
     .withLatestFrom(this.store)

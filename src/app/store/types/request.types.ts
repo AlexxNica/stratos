@@ -102,6 +102,15 @@ export abstract class NoneCFFailedAction implements Action {
   type = NonApiActionTypes.FAILED;
 }
 
+// Just stick it into the store raw
+export interface StartBasicNoneCFAction extends ICFAction {
+  passthrough?: boolean;
+  requestType: ApiRequestTypes;
+  requestParams: any;
+}
+// Normalise with schema
+export interface StartBasicNoneCFNormaliseAction extends ICFAction { }
+
 export class StartNoneCFAction extends NoneCFAction implements IStartRequestAction {
   constructor(
     public apiAction: IAPIAction | PaginatedAction,
