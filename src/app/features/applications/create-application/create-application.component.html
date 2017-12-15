@@ -1,14 +1,20 @@
 <app-page-header>
   Create
 </app-page-header>
-<app-steppers cancel="/applications">
-  <app-step [title]="'Cloud Foundry'" [valid]="step1.validate | async" [onNext]="step1.onNext">
+<mat-horizontal-stepper>
+  <mat-step label="Cloud Foundry" [stepControl]="step1.stepControl">
     <app-create-application-step1 #step1></app-create-application-step1>
-  </app-step>
-  <app-step title="Name" [valid]="step2.validate | async" [onNext]="step2.onNext">
+    <button mat-button matStepperPrevious>Back</button>
+    <button mat-button matStepperNext>Next</button>
+  </mat-step>
+  <mat-step label="Name" [stepControl]="step2.stepControl">
     <app-create-application-step2 #step2></app-create-application-step2>
-  </app-step>
-  <app-step [title]="'Create Route'" [onNext]="step3.onNext">
+    <button mat-button matStepperPrevious>Back</button>
+    <button mat-button matStepperNext>Next</button>
+  </mat-step>
+  <mat-step label="Create Route">
     <app-create-application-step3 #step3></app-create-application-step3>
-  </app-step>
-</app-steppers>
+    <button mat-button matStepperPrevious>Back</button>
+    <button mat-button matStepperNext>Done</button>
+  </mat-step>
+</mat-horizontal-stepper>

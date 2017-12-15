@@ -1,6 +1,7 @@
+import { CreateAppStep } from './../../create-application.types';
 import { selectRequestInfo, selectUpdateInfo } from '../../../../store/selectors/api.selectors';
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { NgForm } from '@angular/forms';
+import { NgForm, AbstractControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Rx';
@@ -23,10 +24,11 @@ import { RouterNav } from '../../../../store/actions/router.actions';
   templateUrl: './create-application-step3.component.html',
   styleUrls: ['./create-application-step3.component.scss']
 })
-export class CreateApplicationStep3Component implements OnInit {
+export class CreateApplicationStep3Component implements OnInit, CreateAppStep {
 
   constructor(private store: Store<AppState>, private router: Router) { }
 
+  stepControl: AbstractControl;
   @ViewChild('form')
   form: NgForm;
 
@@ -126,6 +128,7 @@ export class CreateApplicationStep3Component implements OnInit {
   }
 
   ngOnInit() {
+    this.stepControl = this.form.control;
     this.store.select(selectNewAppState)
       .subscribe(state => {
         this.hostName = state.name.split(' ').join('-').toLowerCase();

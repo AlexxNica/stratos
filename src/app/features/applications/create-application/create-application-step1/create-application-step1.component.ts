@@ -1,7 +1,8 @@
+import { CreateAppStep } from './../../create-application.types';
 import { getPaginationObservables } from './../../../../store/reducers/pagination-reducer/pagination-reducer.helper';
 import { cnsisRegisteredEntitiesSelector } from '../../../../store/selectors/cnsis.selectors';
 import { AfterContentInit, Component, OnInit, ViewChild } from '@angular/core';
-import { NgForm, NgModel } from '@angular/forms';
+import { NgForm, NgModel, AbstractControl } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Rx';
 
@@ -14,11 +15,12 @@ import { AppState } from '../../../../store/app-state';
   templateUrl: './create-application-step1.component.html',
   styleUrls: ['./create-application-step1.component.scss'],
 })
-export class CreateApplicationStep1Component implements OnInit, AfterContentInit {
+export class CreateApplicationStep1Component implements OnInit, AfterContentInit, CreateAppStep {
+
 
   constructor(private store: Store<AppState>) {
   }
-
+  stepControl: AbstractControl;
   paginationKey = 'createApplication';
 
   data$: Observable<any>;
@@ -75,6 +77,7 @@ export class CreateApplicationStep1Component implements OnInit, AfterContentInit
   }
 
   ngOnInit() {
+    this.stepControl = this.cfForm.control;
     this.orgList$ = Observable.combineLatest(
       this.cfSelect.valueChanges.startWith(''),
       this.getData$,

@@ -26,6 +26,7 @@ import {
   MatSlideToggleModule,
   MatSnackBarModule,
   MatSortModule,
+  MatStepperModule,
   MatTableModule,
   MatTabsModule,
   MatToolbarModule,
@@ -60,7 +61,8 @@ const importExport = [
   MatButtonToggleModule,
   MatMenuModule,
   MatSnackBarModule,
-  MatListModule
+  MatListModule,
+  MatStepperModule
 ];
 
 @NgModule({
