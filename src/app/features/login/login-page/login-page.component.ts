@@ -1,5 +1,5 @@
 import { CNSISState } from '../../../store/types/cnsis.types';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ElementRef, Renderer2, ViewChild, AfterViewChecked } from '@angular/core';
 import { NgForm } from '@angular/forms/src/directives';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
@@ -15,11 +15,12 @@ import { RouterNav } from '../../../store/actions/router.actions';
   templateUrl: './login-page.component.html',
   styleUrls: ['./login-page.component.scss']
 })
-export class LoginPageComponent implements OnInit, OnDestroy {
+export class LoginPageComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   constructor(
     private store: Store<AppState>,
-    private router: Router
+    private router: Router,
+    private renderer: Renderer2
   ) { }
 
   loginForm: NgForm;
@@ -34,6 +35,8 @@ export class LoginPageComponent implements OnInit, OnDestroy {
   message = '';
 
   subscription: Subscription;
+
+  @ViewChild('login') loginElement: ElementRef;
 
   ngOnInit() {
     this.subscription =
@@ -58,6 +61,11 @@ export class LoginPageComponent implements OnInit, OnDestroy {
             }
           }
         });
+  }
+
+  ngAfterViewChecked() {
+    setTimeout(() =>
+    this.renderer.addClass(this.loginElement.nativeElement, 'login__background-shown'), 0);
   }
 
   ngOnDestroy() {
