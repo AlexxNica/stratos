@@ -241,11 +241,11 @@ export class ApplicationService {
 
   getAppUrl(app: EntityInfo): string {
     const nonTCPRoutes = app.entity.routes
-    .filter(p => !isTCPRoute(p));
+      .filter(p => !isTCPRoute(p));
     if (nonTCPRoutes.length >= 0) {
       return getRoute(nonTCPRoutes[0], true);
     }
-   return null;
+    return null;
   }
 
   isEntityComplete(value, requestInfo: { fetching: boolean }): boolean {

@@ -78,6 +78,7 @@ import { TableCellRouteComponent } from './components/table/custom-cells/table-c
 import { TableCellTCPRouteComponent } from './components/table/custom-cells/table-cell-tcproute/table-cell-tcproute.component';
 import { TableCellUsageComponent } from './components/table/custom-cells/table-cell-usage/table-cell-usage.component';
 import { TableCellStatusDirective } from './components/table/table-cell-status.directive';
+import { ToastShowerComponent } from './components/toast-shower/toast-shower.component';
 
 @NgModule({
   imports: [
@@ -147,6 +148,7 @@ import { TableCellStatusDirective } from './components/table/table-cell-status.d
     TableCellRouteComponent,
     TableCellTCPRouteComponent,
     TableCellStatusDirective,
+    ToastShowerComponent,
   ],
   exports: [
     FormsModule,
@@ -186,6 +188,7 @@ import { TableCellStatusDirective } from './components/table/table-cell-status.d
     UsageGaugeComponent,
     TableCellUsageComponent,
     TableCellStatusDirective,
+    ToastShowerComponent
   ],
   entryComponents: [AppEventDetailDialogComponentComponent],
   providers: [

@@ -9,3 +9,4 @@
     <input [disabled]="!form.controls['domain']?.value" [(ngModel)]="hostName" matInput placeholder="Host" name="hostName">
   </mat-form-field>
 </form>
+<app-toast-shower *ngIf="toastShowerConfig" [config]="toastShowerConfig"></app-toast-shower>

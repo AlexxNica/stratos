@@ -1,3 +1,4 @@
+import { ToastShowerConfig } from './../../../../shared/components/toast-shower/toast-shower.types';
 import { EntityInfo, APIResource } from '../../../../store/types/api.types';
 import { selectRequestInfo, selectUpdateInfo, selectEntity } from '../../../../store/selectors/api.selectors';
 import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
@@ -38,15 +39,19 @@ export class CreateApplicationStep3Component implements OnInit {
 
   message = null;
 
+  toastShowerConfig: ToastShowerConfig;
+
+  newAppGuid: string;
+
   newAppData: CreateNewApplicationState;
   onNext: StepOnNextFunction = () => {
     const { cloudFoundryDetails, name } = this.newAppData;
 
     const { cloudFoundry, org, space } = cloudFoundryDetails;
-    const newAppGuid = name + space;
+    this.newAppGuid = name + space;
 
     this.store.dispatch(new CreateNewApplication(
-      newAppGuid,
+      this.newAppGuid,
       cloudFoundry, {
         name,
         space_guid: space
@@ -73,7 +78,7 @@ export class CreateApplicationStep3Component implements OnInit {
     this.message = `Creating application${shouldCreateRoute ? ' and route' : ''}`;
 
     return Observable.combineLatest(
-      this.store.select(selectRequestInfo(ApplicationSchema.key, newAppGuid)),
+      this.store.select(selectRequestInfo(ApplicationSchema.key, this.newAppGuid)),
       // If we don't create a route, just fake it till we make it!
       shouldCreateRoute ?
         this.store.select(selectRequestInfo(RouteSchema.key, newRouteGuid)) :
@@ -83,6 +88,10 @@ export class CreateApplicationStep3Component implements OnInit {
         return !app.creating && !route.creating;
       })
       .map(([app, route]) => {
+        this.toastShowerConfig = {
+          entityKey: 'application',
+          entityId: this.newAppGuid
+        };
         if (app.error || route.error) {
           throw new Error('Nope!');
         }
@@ -131,13 +140,22 @@ export class CreateApplicationStep3Component implements OnInit {
 
   ngOnInit() {
     const state$ = this.store.select(selectNewAppState);
-
     this.domains = state$
       .do(state => {
         this.hostName = state.name.split(' ').join('-').toLowerCase();
         this.newAppData = state;
       })
       .filter(state => state.cloudFoundryDetails && state.cloudFoundryDetails.org)
+      // .do(state => {
+      // const { cloudFoundryDetails, name } = state;
+
+      // const { space } = cloudFoundryDetails;
+      // this.newAppGuid = name + space;
+      // this.toastShowerConfig = {
+      //   entityKey: 'application',
+      //   entityId: this.newAppGuid
+      // };
+      // })
       .mergeMap(state => {
         return this.store.select(selectEntity(OrganisationSchema.key, state.cloudFoundryDetails.org))
           .first()
